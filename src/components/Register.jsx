@@ -1,48 +1,41 @@
-
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ui, Alert, Spinner } from "./ui";
 import { API_URL } from "../config";
 
 function Register() {
   const [username, setUsername] = useState("");
-  const [mail, setMail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-
-  const [step, setStep] = useState("register");
   const [notice, setNotice] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  // Step 1: Register and request an OTP
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setNotice(null);
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            email: mail.trim().toLowerCase(),
-            password,
-          }),
-        }
-      );
-
+      const response = await fetch(`${API_URL}/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
       const result = await response.json();
 
       if (response.ok) {
-        setMail(mail.trim().toLowerCase());
-        setStep("verify");
-        setNotice({
-          type: "success",
-          text: result.message || "OTP sent! Check your inbox.",
+        navigate("/login", {
+          state: {
+            registrationSuccess:
+              result.message || "Registration successful. You can now log in.",
+          },
         });
       } else {
         setNotice({
@@ -50,57 +43,10 @@ function Register() {
           text: result.message || "Registration failed.",
         });
       }
-    } catch (err) {
+    } catch {
       setNotice({
         type: "error",
         text: "Can't reach the server. Check your connection.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Step 2: Verify the OTP
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setNotice(null);
-    setLoading(true);
-
-    try {
-      const response = await fetch(
-        `${API_URL}/verify-otp`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: mail,
-            otp,
-          }),
-        }
-      );
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setStep("verified");
-        setNotice({
-          type: "success",
-          text:
-            result.message ||
-            "Email verified successfully! You can now log in.",
-        });
-      } else {
-        setNotice({
-          type: "error",
-          text: result.message || "OTP verification failed.",
-        });
-      }
-    } catch (err) {
-      setNotice({
-        type: "error",
-        text: "Can't reach the server. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -122,161 +68,79 @@ function Register() {
       </div>
 
       <form
-        onSubmit={
-          step === "register"
-            ? handleSubmit
-            : step === "verify"
-            ? handleVerify
-            : (e) => e.preventDefault()
-        }
+        onSubmit={handleSubmit}
         className={`${ui.card} w-full max-w-md space-y-5 p-6 sm:p-8`}
       >
         <div>
-          <h2 className={ui.pageTitle}>
-            {step === "register"
-              ? "Create your account"
-              : step === "verify"
-              ? "Verify your email"
-              : "Email verified!"}
-          </h2>
-
+          <h2 className={ui.pageTitle}>Create your account</h2>
           <p className="mt-1 text-sm text-slate-500">
-            {step === "register"
-              ? "Track applications, resumes and interviews in one place."
-              : step === "verify"
-              ? `Enter the six-digit code sent to ${mail}.`
-              : "Your account is ready. You can now log in."}
+            Track applications, resumes and interviews in one place.
           </p>
         </div>
 
         {notice && (
-          <Alert
-            type={notice.type}
-            onDismiss={() => setNotice(null)}
-          >
+          <Alert type={notice.type} onDismiss={() => setNotice(null)}>
             {notice.text}
           </Alert>
         )}
 
-        {step === "register" && (
-          <>
-            <div>
-              <label htmlFor="username" className={ui.label}>
-                Username
-              </label>
-              <input
-                id="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className={ui.input}
-                placeholder="Choose a username"
-                autoComplete="username"
-                required
-              />
-            </div>
+        <div>
+          <label htmlFor="username" className={ui.label}>
+            Username
+          </label>
+          <input
+            id="username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            className={ui.input}
+            placeholder="Choose a username"
+            autoComplete="username"
+            maxLength={100}
+            required
+          />
+        </div>
 
-            <div>
-              <label htmlFor="email" className={ui.label}>
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={mail}
-                onChange={(e) => setMail(e.target.value)}
-                className={ui.input}
-                placeholder="you@example.com"
-                autoComplete="email"
-                required
-              />
-            </div>
+        <div>
+          <label htmlFor="email" className={ui.label}>
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className={ui.input}
+            placeholder="you@example.com"
+            autoComplete="email"
+            required
+          />
+        </div>
 
-            <div>
-              <label htmlFor="password" className={ui.label}>
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={ui.input}
-                placeholder="Create a password"
-                autoComplete="new-password"
-                required
-                minLength={8}
-              />
-            </div>
+        <div>
+          <label htmlFor="password" className={ui.label}>
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            className={ui.input}
+            placeholder="Create a password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`${ui.btnPrimary} w-full`}
-            >
-              {loading && <Spinner />}
-              {loading ? "Sending OTP…" : "Create account"}
-            </button>
-          </>
-        )}
-
-        {step === "verify" && (
-          <>
-            <div>
-              <label htmlFor="otp" className={ui.label}>
-                Six-digit OTP
-              </label>
-              <input
-                id="otp"
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                value={otp}
-                onChange={(e) =>
-                  setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                }
-                className={`${ui.input} text-center text-xl tracking-[0.4em]`}
-                placeholder="000000"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6}
-              className={`${ui.btnPrimary} w-full`}
-            >
-              {loading && <Spinner />}
-              {loading ? "Verifying…" : "Verify email"}
-            </button>
-
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => {
-                setStep("register");
-                setOtp("");
-                setNotice(null);
-              }}
-              className="w-full text-sm text-slate-600 hover:text-teal-700"
-            >
-              Back to registration
-            </button>
-          </>
-        )}
-
-        {step === "verified" && (
-          <button
-            type="button"
-            onClick={() => {
-              window.location.href = "/login";
-            }}
-            className={`${ui.btnPrimary} w-full`}
-          >
-            Go to login
-          </button>
-        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`${ui.btnPrimary} w-full`}
+        >
+          {loading && <Spinner />}
+          {loading ? "Creating account…" : "Create account"}
+        </button>
       </form>
     </div>
   );

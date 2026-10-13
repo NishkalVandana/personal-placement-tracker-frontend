@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ui, Alert, Spinner } from "./ui";
 import { API_URL } from "../config";
 function Login() {
@@ -7,6 +7,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
   const handleSubmit=async (e)=>{
     e.preventDefault();
@@ -29,7 +30,7 @@ function Login() {
       } else {
           setError(msg.msg || msg.message || msg.error || "Login failed. Check your email and password and try again.");
       }
-    } catch (err) {
+    } catch {
       setError("Can't reach the server. Check your connection and try again.");
     } finally {
       setLoading(false);
@@ -54,6 +55,10 @@ function Login() {
             <h2 className={ui.pageTitle}>Log in</h2>
             <p className="mt-1 text-sm text-slate-500">Welcome back. Pick up where you left off.</p>
           </div>
+
+          {location.state?.registrationSuccess && (
+            <Alert type="success">{location.state.registrationSuccess}</Alert>
+          )}
 
           <Alert type="error">{error}</Alert>
 
