@@ -495,7 +495,7 @@ function Jobs() {
                                         </p>
                                     )}
 
-                                    <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="mt-auto flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                                         {jobUrl ? (
                                             <a
                                                 href={jobUrl}
@@ -515,7 +515,7 @@ function Jobs() {
                                                 </svg>
                                             </a>
                                         ) : <span />}
-                                        <div className="flex gap-2 sm:shrink-0">
+                                        <div className="flex min-w-0 flex-wrap justify-end gap-2">
                                             <button
                                                 type="button"
                                                 onClick={() => openApplyModal(savedJob)}
